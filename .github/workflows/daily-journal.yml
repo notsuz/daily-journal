@@ -1,0 +1,60 @@
+name: Daily Journal Entry
+
+on:
+  schedule:
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  create-journal:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create today's journal entry
+        run: |
+          mkdir -p journal
+          TODAY=$(date -u '+%Y-%m-%d')
+          FILENAME="journal/${TODAY}.md"
+          
+          if [ ! -f "$FILENAME" ]; then
+            echo "Creating new journal entry for $TODAY..."
+            cat << EOF > "$FILENAME"
+       # 📅 Journal Entry - ${TODAY}
+
+       ## 🧠 What did I learn today?
+       *Write down one new thing you learned, no matter how small.*
+
+       ## 🚀 What did I accomplish?
+       *List the tasks you completed or worked on.*
+
+       ## 📝 Random Thoughts & Ideas
+       *Jot down any ideas, brain dumps, or interesting links.*
+
+       ## 🎯 What am I focusing on tomorrow?
+       *Set one primary goal for the next day.*
+
+       ---
+       *Entry automatically created. Update this file anytime to fill in your answers!*
+       EOF
+            echo "File created successfully."
+          else
+            echo "Journal entry for $TODAY already exists. No changes made."
+          fi
+
+      - name: Commit and push if there are changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add journal/
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            TODAY=$(date -u '+%Y-%m-%d')
+            git commit -m "📝 Daily journal entry for $TODAY [skip ci]"
+            git push
+          fi
