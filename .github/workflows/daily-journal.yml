@@ -1,8 +1,9 @@
-name: Daily Journal Entry
+name: Daily Technical Journal
 
 on:
   schedule:
-    - cron: '0 9 * * *'
+    # Runs at 15:15 UTC (which is 21:00 / 9 PM in Nepal)
+    - cron: '15 15 * * *'
   workflow_dispatch:
 
 permissions:
@@ -15,35 +16,73 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Create today's journal entry
+      - name: Generate Random Technical Content
+        id: content
         run: |
-          mkdir -p journal
           TODAY=$(date -u '+%Y-%m-%d')
           FILENAME="journal/${TODAY}.md"
           
+          # Arrays of random technical tasks/snippets
+          TASKS=(
+            "Implement a binary search algorithm in Python."
+            "Write a SQL query to find the second highest salary."
+            "Explain the difference between TCP and UDP with a diagram."
+            "Create a Dockerfile for a Node.js application."
+            "Write a regex to validate an email address."
+            "Refactor a function to use async/await."
+            "Document the time complexity of QuickSort."
+            "Write a unit test for a login function."
+            "Create a CSS grid layout for a 3-column dashboard."
+            "Explain the concept of Dependency Injection."
+          )
+          
+          SNIPPETS=(
+            "console.log('Hello World');"
+            "print('Hello World')"
+            "SELECT * FROM users WHERE active = 1;"
+            "git rebase -i HEAD~3"
+            "chmod +x script.sh"
+            "docker ps -a"
+            "npm install --save-dev"
+            "sudo systemctl restart nginx"
+            "curl -X GET https://api.example.com"
+            "ls -la | grep .txt"
+          )
+
+          # Select random items
+          RANDOM_TASK=${TASKS[$RANDOM % ${#TASKS[@]}]}
+          RANDOM_SNIPPET=${SNIPPETS[$RANDOM % ${#SNIPPETS[@]}]}
+
+          mkdir -p journal
+          
           if [ ! -f "$FILENAME" ]; then
-            echo "# 📅 Journal Entry - $TODAY" > "$FILENAME"
+            echo "#  Technical Journal - $TODAY" > "$FILENAME"
             echo "" >> "$FILENAME"
-            echo "## 🧠 What did I learn today?" >> "$FILENAME"
+            echo "##  Daily Challenge" >> "$FILENAME"
+            echo "$RANDOM_TASK" >> "$FILENAME"
             echo "" >> "$FILENAME"
-            echo "## 🚀 What did I accomplish?" >> "$FILENAME"
+            echo "##  Code Snippet of the Day" >> "$FILENAME"
+            echo "\`\`\`bash" >> "$FILENAME"
+            echo "$RANDOM_SNIPPET" >> "$FILENAME"
+            echo "\`\`\`" >> "$FILENAME"
             echo "" >> "$FILENAME"
-            echo "## 📝 Random Thoughts & Ideas" >> "$FILENAME"
-            echo "" >> "$FILENAME"
-            echo "## 🎯 What am I focusing on tomorrow?" >> "$FILENAME"
+            echo "##  Notes" >> "$FILENAME"
+            echo "- Completed the daily challenge." >> "$FILENAME"
+            echo "- Maintained commit streak." >> "$FILENAME"
             echo "" >> "$FILENAME"
             echo "---" >> "$FILENAME"
-            echo "*Entry automatically created. Update this file anytime!*" >> "$FILENAME"
+            echo "*Generated automatically at 9 PM Nepal Time.*" >> "$FILENAME"
           fi
 
       - name: Commit and push changes
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
           git add journal/
+          
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "📝 Daily journal entry"
+            git commit -m " Daily technical entry: $(date -u '+%Y-%m-%d')"
             git push
-          fi
+          fi   
